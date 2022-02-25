@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "ahavaj",
-    "slug": "ahavaj",
-    "version": "1.0.0",
+    "name": "Ahava",
+    "slug": "ahava",
+    "version": "1.1.3",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/AhavaIcon.png",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/ahava(1).png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,16 +17,55 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jose.ahava",
+      "buildNumber": "1.1.3",
+
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription":
+          "Solicitamos tu permiso para que otros usuarios puedan conocer tu ubicación y te puedan donar sangre exitosamente.",
+        "NSPhotoLibraryUsageDescription":
+          "Solicitamos tu permiso para que puedas personalizar tu perfil, y puedas publicar fotos a tu campaña.",
+        "NSPhotoLibraryAddUsageDescription":
+          "Solicitamos tu permiso para que puedas personalizar tu perfil, y puedas publicar fotos a tu campaña."
+      },
+        
+      "config": {
+
+        "googleSignIn": {
+          "reservedClientId": "com.googleusercontent.apps.697519346482-smtkdekivv716ji1f93knuafa003aa7b"
+        },
+
+        "googleMapsApiKey": "AIzaSyA09C1-BvZ621_WzKoIuqa8cgoEFVaAS4s"
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
+      "package": "com.jose.ahava",
+      "versionCode": 16,
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/DesignIcon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBKzcofFEizN0ADdm9IxY4EI_Ti-G33d-U"
+        }
+      },
+      "permissions": [
+        "CAMERA_ROLL",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "LOCATION",
+        "LOCATION_FOREGROUND",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "USER_FACING_NOTIFICATIONS"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/AhavaIcon.png"
     }
   }
 }

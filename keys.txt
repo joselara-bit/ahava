@@ -1,0 +1,20 @@
+AIzaSyCiUX3LI3_w1eZewCdgFJWQOpIlJb9yp_Y
+
+Google Certificate Fingerprint:     E8:44:09:03:89:95:81:26:A1:78:26:C4:D5:21:7A:AC:1C:38:1A:C0
+Google Certificate Hash (SHA-1):    E844090389958126A17826C4D5217AAC1C381AC0
+Google Certificate Hash (SHA-256):  363231E431DE9DA2112E71769FF904DB0E71080C4C43C17D83EA68D837AED05A
+Facebook Key Hash:                  6EQJA4mVgSaheCbE1SF6rBw4GsA=
+
+iOS AIzaSyA09C1-BvZ621_WzKoIuqa8cgoEFVaAS4s
+
+ApiKey ANTERIOR AIzaSyDBhD9tzztFGsjXADzUC0PgyWvL-ZwQEko
+
+EXPO BUILD:iOS
+
+EXPO_USE_DEV_SERVER=true NODE_OPTIONS=--max_old_space_size=4096 yarn expo build:ios --release-channel develop
+
+EXPO BUILD:ANDROID
+
+EXPO_USE_DEV_SERVER=true NODE_OPTIONS=--max_old_space_size=4096 yarn expo build:android --release-channel develop
+
+ https://expo.io/accounts/joselara/builds/b48e5d59-d46e-4074-ab92-5d9c0a628b7a

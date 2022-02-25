@@ -1,0 +1,516 @@
+//ESTA ES LA PANTALLA DE BLOOD
+
+import React, { useState, useCallback, useRef } from 'react'
+import { Alert, Dimensions, StyleSheet, Text, View, ScrollView, ActivityIndicator } from 'react-native'
+import CarouselImages from '../../components/CarouselImages';
+import Loading from '../../components/Loading';
+import { 
+    getDocumentById, 
+} from '../../utils/Actions';
+
+import { Icon, ListItem, Rating, Input, Button } from 'react-native-elements'
+import { formatPhone, callNumber, sendEmail, sendWhatsapp } from '../../utils/Helpers';
+import MapDoctor from '../../components/Doctors/MapDoctor';
+import { map } from 'lodash';
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import Toast from 'react-native-easy-toast'
+import * as Linking from 'expo-linking';
+
+const widthScreen = Dimensions.get("window").width
+
+export default function HospitalScreen({ route }) {
+
+    const navigation = useNavigation()
+    const { id, name } = route.params
+    const toastRef = useRef()
+    const [loading, setLoading] = useState(false)
+    const [doctor, setDoctor] = useState(null)
+    const [activeSlide, setActiveSlide] = useState(0)
+    const [currentUser, setCurrentUser] = useState(null)
+    const [modalNotification, setModalNotification] = useState(false)
+
+    /* firebase.auth().onAuthStateChanged(user => {
+        user ? setUserLogged(true) : setUserLogged(false)
+        setCurrentUser(user)
+    }) VALIDAR QUE EL USUARIO ESTÉ LOGUEADO*/ 
+
+    React.useLayoutEffect(() => {
+        navigation.setOptions( { title: name } );
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            (async() => {
+                const response = await getDocumentById("hospital", id)
+                if (response.statusResponse) {
+                    setDoctor(response.document)
+                } else {
+                    setDoctor({})
+                    Alert.alert("Ocurrió un problema cargando el perfil del solicitante. Intente más tarde.")
+                }
+            })()
+        }, [])
+    )
+
+    if (!doctor) {
+        return <Loading isVisible={true} text="Cargando" />
+    }
+
+    return (
+        <ScrollView style={styles.viewBody}>
+            
+            <NameDoctor
+                name={doctor.name}
+                biography={doctor.biography}
+            />
+            <CarouselImages
+                images={doctor.images}
+                height={250}
+                width={widthScreen}
+                activeSlide={activeSlide}
+                setActiveSlide={setActiveSlide}
+            />
+            <DoctorInfo
+                name={doctor.name}
+                location={doctor.location}
+                address={doctor.address}
+                email={doctor.email}
+                city={doctor.city}
+                addphone={formatPhone(doctor.callingCode, doctor.addphone)}
+                comment={doctor.comment}
+                municipality={doctor.municipality}
+                hospital={doctor.hospital}
+                suburb={doctor.suburb}
+                additional={doctor.additional}
+                facebook={doctor.facebook}
+                instagram={doctor.instagram}
+                tiktok={doctor.tiktok}
+                youtube={doctor.youtube}
+                whatsapp={formatPhone(doctor.callingCode, doctor.phone)}
+                phone={formatPhone(doctor.callingCode, doctor.phone)}
+                currentUser={currentUser}
+                callingCode={doctor.callingCode}
+                phoneNoFormat={doctor.phone}
+                setLoading={setLoading}
+                setModalNotification={setModalNotification}
+            />
+
+            <UserLinks
+                facebooklink={doctor.facebooklink}
+                instagramlink={doctor.instagramlink}
+                tiktoklink={doctor.tiktoklink}
+                youtubelink={doctor.youtubelink}
+                name={doctor.name}
+            />
+            <Toast ref={toastRef} position="center" opacity={0.9}/>
+            <Loading isVisible={loading} text="Espere, porfavor"/>
+        </ScrollView>
+    )
+}
+
+function DoctorInfo({ 
+    name, 
+    currentUser, 
+    location, 
+    comment,
+    address, 
+    email, 
+    addphone,
+    city,
+    municipality,
+    hospital,
+    suburb,
+    phone, 
+    whatsapp,  
+    callingCode, 
+    phoneNoFormat,
+    facebook,
+    instagram,
+    tiktok,
+    youtube,
+    setModalNotification,
+}) {
+
+    const listInfo = [
+        { type: "address", text: address, iconLeft: "map-marker-radius", subtitle: 'Dirección del Hospital o Clínica:'},
+        { type: "hospital", text: hospital, iconLeft: "hospital", subtitle: 'Ubicación del Banco de Sangre:'},
+        { type: "city", text: city, iconLeft: "city", subtitle: 'Ciudad:'},
+        { type: "municipality", text: municipality, iconLeft: "google-maps", subtitle: 'Muncipio/Alcadía:'},
+        { type: "suburb", text: suburb, iconLeft: "map-marker-radius", subtitle: 'Colonia:'},
+        { type: "facebook", text: facebook, iconLeft: "facebook", subtitle: 'Perfil o página de Facebook:'},
+        { type: "instagram", text: instagram, iconLeft: "instagram", subtitle: 'Perfil de Instagram:'},
+        { type: "tiktok", text: tiktok, iconLeft: "camera-iris", subtitle: 'Perfil de Tiktok:'},
+        { type: "youtube", text: youtube, iconLeft: "youtube", subtitle: 'Nombre del canal de YouTube:'},
+        { type: "phone", text: phone, iconLeft: "phone", subtitle: 'Número de contacto principal:', actionRight: "callPhone", iconRight: "phone-in-talk"},
+        { type: "addphone", text: addphone, iconLeft: "phone-plus", subtitle: 'Número de contacto secundario:', actionRight: "callPhone", iconRight: "phone-in-talk"},
+        { type: "whatsapp", text: whatsapp, iconLeft: "whatsapp", subtitle: 'Número de Whatsapp del Hospital o Clínica:', iconRight2: "whatsapp", actionRight2: "sendWhatsapp"}, 
+        { type: "email", text: email, iconLeft: "at", subtitle: 'Correo electrónico de contacto:', actionRight: "sendEmail", iconRight: "email-send"},
+    ]
+
+    const actionRight = (type) => {
+        if (type == "phone") {
+            callNumber(phone)
+        } else if (type == "email") {
+            if (currentUser) {
+                sendEmail(email, "Interesada/o", `Tengo su contacto mediante la app de Ahavá. Y estoy interesada/o en donarle sangre.`)
+            } else {
+                sendEmail(email, "Interesada/o", `Tengo su contacto mediante la app de Ahavá. Y estoy interesada/o en donarle sangre.`)
+            }
+        } else if (type == "addphone") {
+            callNumber(phone)
+        }
+    }
+
+    const actionRight2 = (type) => {
+        if (type == "whatsapp") {
+            if (currentUser) {
+                sendWhatsapp(`${callingCode} ${phoneNoFormat}`, `Hola ! Muy buena tarde. Tengo su contacto mediante la app de Ahavá. Y estoy interesada/o en donarle sangre.`)
+            } else {
+                sendWhatsapp(`${callingCode} ${phoneNoFormat}`, `Estoy interesada/o en tener una consulta con usted.`)
+            }
+        }
+    }
+
+    return (
+        <View style={styles.viewDoctorInfo}>
+            <Text style={styles.doctorInfoTitle}>
+                Información sobre el Hospital o Clínica
+            </Text>
+
+            <Text style={styles.doctorInfoSubtitle}>
+                Ubicación del Hospital o Clínica:
+            </Text>
+            
+            <MapDoctor
+                location={location}
+                name={name}
+                height={200}
+            />
+
+            <Text style={styles.biographyDoctor}>{comment}</Text>
+
+            {
+                map(listInfo, (item, index) => (
+                    <ListItem
+                        key={index}
+                        style={styles.containerListItem}
+                    >
+                        <Icon
+                            type="material-community"
+                            name={item.iconLeft}
+                            color="#F41635"
+                        />
+                        <ListItem.Content>
+                        <ListItem.Subtitle>{item.subtitle} {item.subtext}</ListItem.Subtitle>
+                            <ListItem.Title>{item.text}</ListItem.Title>
+                        </ListItem.Content>
+                        {
+                            item.iconRight && (
+                                <Icon
+                                    type="material-community"
+                                    name={item.iconRight}
+                                    color="#F41635"
+                                    onPress={() => actionRight(item.type)}
+                                />
+                            )
+                        }
+
+                        {
+                            item.iconRight2 && (
+                                <Icon
+                                    type="material-community"
+                                    name={item.iconRight2}
+                                    color="#F41635"
+                                    onPress={() => actionRight2(item.type)}
+                                />
+                            )
+                        }
+                    </ListItem>
+                ))
+            }
+        </View>
+    )
+}
+
+function NameDoctor({ 
+    name, 
+}) {
+    const navigation = useNavigation()
+    return (
+        <View style={styles.viewDoctorName}>
+            <View style={styles.viewDoctorContainer}>
+            <Icon 
+                  type="ionicon"
+                  name="chevron-back"
+                  color="#F41635"
+                  size={25}
+                  raised
+                  containerStyle={styles.icon}
+                  onPress= {() => navigation.goBack()}
+              />
+            
+                <Text style={styles.nameUser}>{name}</Text>
+            </View>
+        </View>
+    )
+}
+
+function UserLinks({
+    facebooklink,
+    instagramlink,
+    tiktoklink,
+    youtubelink,
+    name
+}) {
+    return (
+        <View>
+
+            <Text style={styles.social}>Ayudar</Text>
+
+            <Text style={styles.text}>Nos emociona muchísimo saber que deseés ayudar a los demás.{'\n'}{'\n'}Por el momento no tenemos la posibilidad de agendar una cita con el/la {name} para que puedas donar sangre en su Banco de Sangre, pero próximamente estará disponible dicha función.{'\n'}{'\n'}Por lo tanto, te invitamos a que te pongas en contacto directamente con {name} para poder reservar tu cita en el Banco de Sangre.{'\n'}{'\n'}Los datos de Contacto del/la {name} se encuentran arriba de este apartado.</Text>
+
+            <Text style={styles.socialMedia}>Redes Sociales</Text>
+
+            <Text style={styles.socialText}>De igual forma, te invitamos a que conozcas sus Redes Sociales y puedas establecer un contacto con el {name}.{'\n'}</Text>
+
+                <Icon
+                    type="material-community"
+                    name="facebook"
+                    color="#1b77f2"
+                    reverse
+                    containerStyle={styles.btnFacebookLink}
+                    onPress={() => Linking.openURL(facebooklink)}
+                />
+
+                <Icon
+                    type="ionicon"
+                    name="logo-instagram"
+                    color="#ea3c61"
+                    reverse
+                    containerStyle={styles.btnInstagramLink}
+                    onPress={() => Linking.openURL(instagramlink)}
+                />
+
+                <Icon
+                    type="ionicon"
+                    name="logo-tumblr"
+                    color="black"
+                    reverse
+                    containerStyle={styles.btnTiktokLink}
+                    onPress={() => Linking.openURL(tiktoklink)}
+                />
+
+                <Icon
+                    type="ionicon"
+                    name="logo-youtube"
+                    color="#fe0002"
+                    reverse
+                    containerStyle={styles.btnYoutubeLink}
+                    onPress={() => Linking.openURL(youtubelink)}
+                />
+
+            </View>
+    )
+}
+
+
+const styles = StyleSheet.create({
+    viewBody: {
+        flex: 1,
+        backgroundColor: "#fff"
+    },
+
+    viewDoctorName: {
+        padding: 15,
+    },
+
+    viewUserAge: {
+        padding: 5,
+        marginLeft: -5,
+    },
+
+    viewDoctorContainer: {
+        flexDirection: "row",
+    },
+
+    nameUser: {
+        fontWeight: "bold",
+        color: "#F41635",
+        fontSize: 35,
+        marginRight: 75,
+        top: 15,
+    },
+
+    ageUser: {
+        fontWeight: "bold",
+        fontSize: 19,
+    },
+
+    rating: {
+        position: "absolute",
+        right: 0,
+        marginTop: 8,
+    },
+
+    biographyDoctor: {
+        marginTop: 15,
+        color: "#F41635",
+        textAlign: "justify",
+        fontWeight: "bold",
+        marginLeft: 1,
+        marginVertical: 5,
+        fontSize: 15,
+    },
+
+    viewDoctorInfo: {
+        margin: 15,
+        marginTop: 25,
+    },
+
+    doctorInfoTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 15,
+        color: "#F41635",
+        marginTop: -25
+    },
+
+    containerListItem: {
+        borderBottomColor: "#F41635",
+        borderBottomWidth: 1,
+    },
+
+     llicenseDoctor: {
+        fontWeight: "bold",
+        fontSize: 15,
+        marginBottom: 8,
+    },
+
+    viewFavorite: {
+        position: "absolute",
+        top: 0,
+        right: 0,
+        backgroundColor: "#fff",
+        borderBottomLeftRadius: 100,
+        padding: 10,
+        paddingLeft: 15,
+    },
+
+    textArea: {
+        height: 50,
+        paddingHorizontal: 10, 
+    },
+
+    btnSend: {
+        backgroundColor: "#F41635"
+    },
+
+    btnSendContainer: {
+        width: "95%"
+    },
+
+    btnSendContainer: {
+        width: "95%"
+    },
+
+    textModal: {
+        color: "#000",
+        fontSize: 16,
+        fontWeight: "bold"
+    },
+
+    modalContainer: {
+        justifyContent: "center",
+        alignItems: "center"
+    },
+
+    doctorInfoSubtitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 15,
+        color: "#F41635",
+        fontSize: 15,
+    },
+
+    icon: {
+        bottom: -23,
+        right: 5,
+    },
+
+    sliderContainer: {
+        height: 200,
+        width: '90%',
+        top: 45,
+        marginBottom: 50,
+        justifyContent: 'center',
+        alignSelf: "center",
+        borderRadius: 8,
+    },
+
+
+    text: {
+        color: "black",
+        marginLeft: 10,
+        marginRight: 10,
+ 
+        fontSize: 15,
+        bottom: -20,
+    },
+
+    socialText: {
+        color: "black",
+        marginLeft: 10,
+        marginRight: 10,
+        fontSize: 15,
+        bottom: -35,
+    },
+
+    social: {
+        fontWeight: "bold",
+        color: "#F41635",
+        fontSize: 35,
+        marginRight: 75,
+        top: 15,
+        left: 15, 
+    },
+
+    socialMedia: {
+        fontWeight: "bold",
+        color: "#F41635",
+        fontSize: 35,
+        marginRight: 75,
+        top: 27,
+        left: 15, 
+    },
+
+    btnFacebookLink: {
+        left: 10,
+        top: 18 
+    },
+
+    btnInstagramLink: {
+        left: 77,
+        top: -47
+    },
+
+    btnTiktokLink: {
+        left: 213,
+        top: -113,
+    },
+
+    btnYoutubeLink: {
+        left: 280,
+        top: -180
+    },
+
+    btnTwitterLink: {
+        left: 145,
+        top: -395
+    },
+
+    btnLinkedinLink: {
+        left: 213,
+        top: -460,
+        marginBottom: -430,
+    }
+})

@@ -1,0 +1,75 @@
+import React, { useState } from 'react';
+import { View, StyleSheet, Image, Text, Alert } from 'react-native';
+
+import {
+    DrawerContentScrollView,
+    DrawerItem,
+    DrawerItemList,
+} from '@react-navigation/drawer';
+
+import { updateProfile, uploadImage } from '../../utils/Actions'
+import { loadImageFromGallery } from '../../utils/Helpers'
+
+import { Avatar } from 'react-native-elements'
+
+import * as firebase from 'firebase'
+import 'firebase/firestore'
+
+import COLORS from '../../assets/colors/Colors';
+
+export function DrawerContent(props) {
+
+const [user, setUser] = useState(null)
+
+const [photoUrl, setPhotoUrl] = useState(user.photoURL)
+
+const changePhoto = async() => {
+    const result = await loadImageFromGallery([1, 1])
+    if(!result.status) {
+        return
+    }
+    setLoadingText("Cambiando foto de perfil...")
+    setLoading(true)
+    const resultUploadImage = await uploadImage(result.image, "avatars", user.uid)
+    if (!resultUploadImage.statusResponse) {
+        setLoading(false)
+        Alert.alert("Ha ocurrido un error al almacenar tu foto de perfil")
+    }
+    const resultUpdateProfile = await updateProfile({ photoURL: resultUploadImage.url })
+    setLoading(false)
+    if (resultUpdateProfile.statusResponse) {
+        setPhotoUrl(resultUploadImage.url)
+    } else {
+        Alert.alert("No se pudo subir tu foto de perfil")
+    }
+}
+
+    return(
+        <DrawerContentScrollView style={{ paddingVertical: 30 }}>
+            <View style={{ marginLeft: 20, marginVertical: 40 }}>
+                <Avatar
+                onPress={changePhoto}
+                    source={
+                        photoUrl
+                            ? { uri: photoUrl}
+                            : require("../../assets/avatar-default.jpg")
+                    }
+                    style={{ height: 70, width: 70, borderRadius: 20 }}
+                />
+                <Text
+                    style={{
+                        color: COLORS.white,
+                        fontWeight: 'bold',
+                        fontSize: 13,
+                        marginTop: 10,
+                    }}
+                >{user.email}</Text>
+            </View>
+            <DrawerItemList {...props}/>
+        </DrawerContentScrollView>
+    )
+}
+
+const styles = StyleSheet.create({
+    
+})
